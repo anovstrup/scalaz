@@ -991,6 +991,7 @@ sealed trait IndSeq[A] extends Ops[FingerTree[Int, A]] {
 
   import std.anyVal._
   import IndSeq.indSeq
+  import FingerTree._
 
   implicit def sizer[A] = UnitReducer((a: A) => 1)
   def apply(i: Int): A =
@@ -1012,14 +1013,15 @@ sealed trait IndSeq[A] extends Ops[FingerTree[Int, A]] {
   def drop(n: Int): IndSeq[A] = split(n)._2
   def take(n: Int): IndSeq[A] = split(n)._1
   def map[B](f: A => B): IndSeq[B] = indSeq(self map f)
+  def ===(other: IndSeq[A])(implicit E: Equal[A]): Boolean = Equal[FingerTree[Int, A]].equal(self, other.self)
 
   import FingerTree.fingerTreeFoldable
 
   def flatMap[B](f: A => IndSeq[B]): IndSeq[B] = indSeq(fingerTreeFoldable.foldLeft(self, empty[Int, B])((ys, x) => ys <++> f(x).self))
 }
 
-object IndSeq {
-  private def indSeq[A](v: FingerTree[Int, A]) = new IndSeq[A] {
+object IndSeq extends IndSeqInstances {
+  private[scalaz] def indSeq[A](v: FingerTree[Int, A]) = new IndSeq[A] {
     val self = v
   }
 
@@ -1029,6 +1031,26 @@ object IndSeq {
   def fromSeq[A](as: Seq[A]) = indSeq(as.foldLeft(empty[Int, A](UnitReducer(a => 1)))((x, y) => x :+ y))
 }
 
+trait IndSeqInstances{
+  import IndSeq._
+
+  implicit def indSeqEqual[A: Equal]: Equal[IndSeq[A]] = new Equal[IndSeq[A]]{
+    def equal(a1: IndSeq[A], a2: IndSeq[A]) = a1 === a2
+  }
+
+  implicit val indSeqInstance = new MonadPlus[IndSeq] with Traverse[IndSeq]{
+    def traverseImpl[G[_], A, B](fa: IndSeq[A])(f: A => G[B])(implicit G: Applicative[G]) = {
+      import std.anyVal._
+      implicit val r = UnitReducer((_: B) => 1)
+      G.map(fa.self.traverseTree(f))(indSeq)
+    }
+    def point[A](a: => A) = IndSeq(a)
+    def bind[A, B](fa: IndSeq[A])(f: A => IndSeq[B]) = fa flatMap f
+    override def map[A, B](fa: IndSeq[A])(f: A => B) = fa map f
+    def plus[A](a: IndSeq[A], b: => IndSeq[A]) = a ++ b
+    def empty[A] = IndSeq.apply()
+  }
+}
 
 /** Ordered sequences, based on [[scalaz.FingerTree]]
  *
