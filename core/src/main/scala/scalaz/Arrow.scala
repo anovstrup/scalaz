@@ -73,6 +73,58 @@ trait Arrow[=>:[_, _]] extends Split[=>:] with Profunctor[=>:] with Category[=>:
   def mapsnd[A, B, C](fab: (A =>: B))(f: B => C): (A =>: C) =
     <<<[A, B, C](arr(f), fab)
 
+  trait ArrowLaw extends ComposeLaw {
+    private[this] val f1Arrow: Arrow[Function1] = std.function.function1Instance
+    import arrowSyntax._
+
+    def law1[A](implicit E: Equal[A =>: A]): Boolean =
+      E.equal(arr(identity), id)
+
+    def law2[A, B, C](ab: A => B, bc: B => C)(implicit E: Equal[A =>: C]): Boolean =
+      E.equal(arr(ab andThen bc), >>>(arr(ab), arr(bc)))
+
+    def law3[A, B, C](ab: A => B)(implicit E: Equal[(A, C) =>: (B, C)]): Boolean =
+      E.equal(arr(ab).first[C], arr(f1Arrow.split(ab, identity)))
+
+    def law4[A, B, C, D](ab: A =>: B, bc: B =>: C)(implicit E: Equal[(A, D) =>: (C, D)]): Boolean =
+      E.equal((ab >>> bc).first[D], ab.first[D] >>> bc.first[D])
+
+    // TODO
+    def law5[A, B, C](g: A =>: A, h: A => A)(implicit E: Equal[(A, A) =>: (A, A)]): Boolean = {
+      val a = g.first[A] >>> arr(f1Arrow.split(identity[A], h))
+      val b = arr(f1Arrow.split(identity[A], h)) >>> g.first[A]
+      E.equal(a, b)
+    }
+
+/*
+    def law6[A, B, C](f: A => B, g: B => C)(implicit E: Equal[A]): Boolean = {
+      import f1Arrow.arrowSyntax._
+      val x: A =>: C = >>>(g.first[A], f1Arrow.arr(g))
+      val y: A =>: C = arr(f1Arrow.>>>(f, g))
+      ???
+    }
+    */
+
+
+    // Typeclassopedia
+    //
+    // 1 arr id  =  id
+    // 2 arr (h . g)  =  arr g >>> arr h
+    // 3 first (arr g)  =  arr (g *** id)
+    // 4 first (g >>> h)  =  first g >>> first h
+    // 5 first g >>> arr (id *** h)  =  arr (id *** h) >>> first g
+    // 6 first g >>> arr fst  =  arr fst >>> g
+    // 7 first (first g) >>> arr assoc  =  arr assoc >>> first g
+    // 8 assoc ((x,y),z) = (x,(y,z))
+                  
+    //first (arr f) = arr (first f)
+    //first (f >>> g) = first f >>> first g
+    //first f >>> arr fst = arr fst >>> f
+    //first f >>> arr (id *** g) = arr (id *** g) >>> first f
+    //first (first f) >>> arr assoc = arr assoc >>> first f
+    
+  }
+
   ////
   val arrowSyntax = new scalaz.syntax.ArrowSyntax[=>:] { def F = Arrow.this }
 }
