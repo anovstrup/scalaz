@@ -2,9 +2,7 @@ package scalaz
 
 /** Endomorphisms.  They have special properties among functions, so
   * are captured in this newtype. */
-sealed trait Endo[A] {
-  /** The captured function. */
-  def run: A => A
+final class Endo[A](val run: A => A) extends Super{
 
   final def apply(a: A): A = run(a)
 
@@ -17,9 +15,7 @@ sealed trait Endo[A] {
 
 object Endo extends EndoFunctions with EndoInstances {
   /** Wrap a function. */
-  def apply[A](f: A => A): Endo[A] = new Endo[A] {
-    val run = f
-  }
+  def apply[A](f: A => A): Endo[A] = new Endo(f)
 }
 
 trait EndoInstances {
@@ -44,9 +40,7 @@ trait EndoInstances {
 
 trait EndoFunctions {
   /** Alias for `Endo.apply`. */
-  final def endo[A](f: A => A): Endo[A] = new Endo[A] {
-    val run = f
-  }
+  final def endo[A](f: A => A): Endo[A] = new Endo(f)
 
   /** Always yield `a`. */
   final def constantEndo[A](a: => A): Endo[A] = endo[A](_ => a)

@@ -3,7 +3,7 @@ package scalaz.concurrent
 import java.util.concurrent.{ConcurrentLinkedQueue, ExecutorService, Executors}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import scalaz.{Catchable, Nondeterminism, Traverse, \/, -\/, \/-}
+import scalaz.{Catchable, Nondeterminism, Traverse, \/, -\/, \/-, Super}
 import scalaz.syntax.monad._
 import scalaz.std.list._
 import scalaz.Free.Trampoline
@@ -27,7 +27,7 @@ import scala.concurrent.duration._
  * are responsible for ensuring the exception safety of the provided
  * `Future`.
  */
-class Task[+A](val get: Future[Throwable \/ A]) {
+class Task[+A](val get: Future[Throwable \/ A]) extends Super {
 
   def flatMap[B](f: A => Task[B]): Task[B] =
     new Task(get flatMap {
