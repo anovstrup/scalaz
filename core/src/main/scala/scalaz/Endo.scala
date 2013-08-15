@@ -21,11 +21,11 @@ sealed abstract class EndoInstances {
 
   /** Endo forms a monoid where `zero` is the identity endomorphism
     * and `append` composes the underlying functions. */
-  implicit def endoInstance[A]: Monoid[Endo[A]] = new Monoid[Endo[A]] {
+  implicit def endoInstance[A]: Monoid[Endo[A]] = new AbstractMonoid[Endo[A]] {
     def append(f1: Endo[A], f2: => Endo[A]) = f1 compose f2
     def zero = Endo.idEndo
   }
-  implicit val endoInstances: Zip[Endo] with Unzip[Endo] = new Zip[Endo] with Unzip[Endo] {
+  implicit val endoInstances: Zip[Endo] with Unzip[Endo] = new AbstractZip[Endo] with Unzip[Endo] {
     def zip[A, B](a: => Endo[A], b: => Endo[B]) =
       Endo {
         case (x, y) => (a(x), b(y))

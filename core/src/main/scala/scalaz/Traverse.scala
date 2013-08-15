@@ -191,6 +191,8 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] { self =>
   val traverseSyntax = new scalaz.syntax.TraverseSyntax[F] { def F = Traverse.this }
 }
 
+private abstract class AbstractTraverse[F[_]] extends Traverse[F]
+
 object Traverse {
   @inline def apply[F[_]](implicit F: Traverse[F]): Traverse[F] = F
 

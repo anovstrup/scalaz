@@ -71,7 +71,7 @@ trait Applicative[F[_]] extends Apply[F] { self =>
   }
 
   /** An `Applicative` for `F` in which effects happen in the opposite order. */
-  def flip: Applicative[F] = new Applicative[F] {
+  def flip: Applicative[F] = new AbstractApplicative[F] {
     val F = Applicative.this
     def point[A](a: => A) = F.point(a)
     def ap[A,B](fa: => F[A])(f: => F[A => B]): F[B] =
@@ -105,6 +105,8 @@ trait Applicative[F[_]] extends Apply[F] { self =>
   ////
   val applicativeSyntax = new scalaz.syntax.ApplicativeSyntax[F] { def F = Applicative.this }
 }
+
+private abstract class AbstractApplicative[F[_]] extends Applicative[F]
 
 object Applicative {
   @inline def apply[F[_]](implicit F: Applicative[F]): Applicative[F] = F

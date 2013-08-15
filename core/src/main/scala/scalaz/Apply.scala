@@ -120,7 +120,7 @@ trait Apply[F[_]] extends Functor[F] { self =>
 
   /** Add a unit to any Apply to form an Applicative. */
   def applyApplicative: Applicative[({type λ[α] = F[α] \/ α})#λ] =
-    new Applicative[({type λ[α] = F[α] \/ α})#λ] {
+    new AbstractApplicative[({type λ[α] = F[α] \/ α})#λ] {
       // transliterated from semigroupoids 3.0.2, thanks edwardk
       def point[A](a: => A) = \/-(a)
       def ap[A, B](a: => F[A] \/ A)(f: => F[A => B] \/ (A => B)) = (f, a) match {
@@ -134,6 +134,8 @@ trait Apply[F[_]] extends Functor[F] { self =>
   ////
   val applySyntax = new scalaz.syntax.ApplySyntax[F] { def F = Apply.this }
 }
+
+private abstract class AbstractApply[F[_]] extends Apply[F]
 
 object Apply {
   @inline def apply[F[_]](implicit F: Apply[F]): Apply[F] = F

@@ -86,12 +86,12 @@ trait ListInstances extends ListInstances0 {
 
   }
 
-  implicit def listMonoid[A]: Monoid[List[A]] = new Monoid[List[A]] {
+  implicit def listMonoid[A]: Monoid[List[A]] = new AbstractMonoid[List[A]] {
     def append(f1: List[A], f2: => List[A]) = f1 ::: f2
     def zero: List[A] = Nil
   }
 
-  implicit def listShow[A: Show]: Show[List[A]] = new Show[List[A]] {
+  implicit def listShow[A: Show]: Show[List[A]] = new AbstractShow[List[A]] {
     override def show(as: List[A]) = "[" +: Cord.mkCord(",", as.map(Show[A].show):_*) :+ "]"
   }
 

@@ -56,7 +56,7 @@ sealed trait EitherInstances0 {
 }
 
 trait EitherInstances extends EitherInstances0 {
-  implicit val eitherInstance = new Bitraverse[Either] {
+  implicit val eitherInstance: Bitraverse[Either] = new AbstractBitraverse[Either] {
     override def bimap[A, B, C, D](fab: Either[A, B])
                                   (f: A => C, g: B => D) = fab match {
       case Left(a)  => Left(f(a))
@@ -71,7 +71,8 @@ trait EitherInstances extends EitherInstances0 {
   }
 
   /** Right biased monad */
-  implicit def eitherMonad[L] = new Traverse[({type l[a] = Either[L, a]})#l] with Monad[({type l[a] = Either[L, a]})#l] with Cozip[({type l[a] = Either[L, a]})#l] {
+  implicit def eitherMonad[L]: Traverse[({type l[a] = Either[L, a]})#l] with Monad[({type l[a] = Either[L, a]})#l] with Cozip[({type l[a] = Either[L, a]})#l] =
+    new AbstractTraverse[({type l[a] = Either[L, a]})#l] with Monad[({type l[a] = Either[L, a]})#l] with Cozip[({type l[a] = Either[L, a]})#l] {
     def bind[A, B](fa: Either[L, A])(f: A => Either[L, B]) = fa match {
       case Left(a)  => Left(a)
       case Right(b) => f(b)
@@ -186,7 +187,7 @@ trait EitherInstances extends EitherInstances0 {
     implicit def G: Bifunctor[Either] = eitherInstance
   }
 
-  implicit def eitherRightLInstance[L] = new Monad[({type λ[α] = RightProjection[L, α]})#λ] {
+  implicit def eitherRightLInstance[L]: Monad[({type λ[α] = RightProjection[L, α]})#λ] = new AbstractMonad[({type λ[α] = RightProjection[L, α]})#λ] {
     def point[A](a: => A) = Right(a).right
     def bind[A, B](fa: RightProjection[L, A])(f: A => RightProjection[L, B]) = fa.e match {
       case Left(a)  => Left(a).right

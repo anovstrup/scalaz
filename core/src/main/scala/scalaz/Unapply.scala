@@ -54,7 +54,7 @@ import Leibniz.{===, refl}
 1) Check that the type class is defined by compiling `implicitly[${TC}[<type constructor>]]`.
 2) Review the implicits in object Unapply, which only cover common type 'shapes'
 (implicit not found: scalaz.Unapply[${TC}, ${MA}])""")
-trait Unapply[TC[_[_]], MA] {
+abstract class Unapply[TC[_[_]], MA] {
 
   /** The type constructor */
   type M[_]
@@ -72,7 +72,7 @@ trait Unapply[TC[_[_]], MA] {
   @inline final def apply(ma: MA): M[A] = leibniz.subst[Id](ma)
 }
 
-sealed trait Unapply_4 {
+sealed abstract class Unapply_4 {
   // /** Unpack a value of type `A0` into type `[a]A0`, given a instance of `TC` */
   implicit def unapplyA[TC[_[_]], A0](implicit TC0: TC[({type λ[α] = A0})#λ]): Unapply[TC, A0] {
     type M[X] = A0
@@ -85,7 +85,7 @@ sealed trait Unapply_4 {
   }
 }
 
-sealed trait Unapply_3 extends Unapply_4 {
+sealed abstract class Unapply_3 extends Unapply_4 {
   /**Unpack a value of type `M0[F[_], A0, A0, B0]` into types `[a]M0[F, a, a, B0]` and `A0`, given an instance of `TC` */
   implicit def unapplyMFABC1and2[TC[_[_]], F[_], M0[F[_], _, _, _], A0, B0](implicit TC0: TC[({type λ[α] = M0[F, α, α, B0]})#λ]): Unapply[TC, M0[F, A0, A0, B0]] {
     type M[X] = M0[F, X, X, B0]
@@ -109,7 +109,7 @@ sealed trait Unapply_3 extends Unapply_4 {
   }
 }
 
-sealed trait Unapply_2 extends Unapply_3 {
+sealed abstract class Unapply_2 extends Unapply_3 {
   // Things get tricky with type State[S, A] = StateT[Id, S, A], both unapplyMAB2 and unapplyMFAB2 are applicable
   // Without characterizing this fully, I'm using the standard implicit prioritization to avoid this.
 
@@ -136,7 +136,7 @@ sealed trait Unapply_2 extends Unapply_3 {
   }
 }
 
-sealed trait Unapply_1 extends Unapply_2 {
+sealed abstract class Unapply_1 extends Unapply_2 {
   /**Unpack a value of type `M0[A0, B0, C0, D0, E0, F0, G0]` into types `[g]M0[A0, B0, C0, D0, E0, F0, g]` and `G0`, given an instance of `TC` */
   implicit def unapplyMABCDEFG7[TC[_[_]], M0[_, _, _, _, _, _, _], A0, B0, C0, D0, E0, F0, G0](implicit TC0: TC[({type λ[α] = M0[A0, B0, C0, D0, E0, F0, α]})#λ]): Unapply[TC, M0[A0, B0, C0, D0, E0, F0, G0]] {
     type M[X] = M0[A0, B0, C0, D0, E0, F0, X]
@@ -193,7 +193,7 @@ sealed trait Unapply_1 extends Unapply_2 {
   }
 }
 
-sealed trait Unapply_0 extends Unapply_1 {
+sealed abstract class Unapply_0 extends Unapply_1 {
   /** Unpack a value of type `M0[F0, A0]` where `F0: * -> *` into
     * types `[a]M0[F0, a]` and `A`, given an instance of `TC`
     */
@@ -245,7 +245,7 @@ object Unapply extends Unapply_0 {
   // TODO More!
 }
 
-trait Unapply2[TC[_[_, _]], MAB] {
+abstract class Unapply2[TC[_[_, _]], MAB] {
 
   /** The type constructor */
   type M[_, _]
@@ -266,7 +266,7 @@ trait Unapply2[TC[_[_, _]], MAB] {
   @inline final def apply(ma: MAB): M[A, B] = leibniz.subst[Id](ma)
 }
 
-sealed trait Unapply2_0 {
+sealed abstract class Unapply2_0 {
   /**Unpack a value of type `M0[F[_], A0, B0]` into types `[a, b]=M0[F, a, b]`, `A0`, and 'B9', given an instance of `TC` */
   implicit def unapplyMFAB[TC[_[_, _]], F[_], M0[F[_], _, _], A0, B0](implicit TC0: TC[({type λ[α, β] = M0[F, α, β]})#λ]): Unapply2[TC, M0[F, A0, B0]] {
     type M[X, Y] = M0[F, X, Y]
@@ -296,7 +296,7 @@ object Unapply2 extends Unapply2_0 {
   }
 }
 
-trait Unapply21[TC[_[_, _], _], MAB]{
+abstract class Unapply21[TC[_[_, _], _], MAB]{
   type M[_, _]
   type A
   type B
@@ -321,7 +321,7 @@ object Unapply21 {
   }
 }
 
-trait UnapplyProduct[TC[_[_]], MA, MB] {
+abstract class UnapplyProduct[TC[_[_]], MA, MB] {
   type M[X]
   type A
   type B

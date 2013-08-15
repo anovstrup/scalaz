@@ -30,7 +30,7 @@ object Name {
     def distributeImpl[G[_], A, B](fa: G[A])(f: A => Name[B])(implicit G: Functor[G]) =
       Name(G.map(fa)(a => f(a).value))
   }
-  implicit def nameEqual[A: Equal]: Equal[Name[A]] = new Equal[Name[A]] {
+  implicit def nameEqual[A: Equal]: Equal[Name[A]] = new AbstractEqual[Name[A]] {
     def equal(a1: Name[A], a2: Name[A]): Boolean = Equal[A].equal(a1.value, a2.value)
   }
 }
@@ -56,7 +56,7 @@ object Need {
     def distributeImpl[G[_], A, B](fa: G[A])(f: A => Need[B])(implicit G: Functor[G]) =
       Need(G.map(fa)(a => f(a).value))
   }
-  implicit def needEqual[A: Equal]: Equal[Need[A]] = new Equal[Need[A]] {
+  implicit def needEqual[A: Equal]: Equal[Need[A]] = new AbstractEqual[Need[A]] {
     def equal(a1: Need[A], a2: Need[A]): Boolean = Equal[A].equal(a1.value, a2.value)
   }
 }
@@ -71,7 +71,7 @@ object Value {
     def distributeImpl[G[_], A, B](fa: G[A])(f: A => Value[B])(implicit G: Functor[G]) =
       Value(G.map(fa)(a => f(a).value))
   }
-  implicit def valueEqual[A: Equal]: Equal[Value[A]] = new Equal[Value[A]] {
+  implicit def valueEqual[A: Equal]: Equal[Value[A]] = new AbstractEqual[Value[A]] {
     def equal(a1: Value[A], a2: Value[A]): Boolean = Equal[A].equal(a1.value, a2.value)
   }
 }

@@ -807,17 +807,17 @@ sealed abstract class FingerTree[V, A](implicit measurer: Reducer[A, V]) {
 sealed abstract class FingerTreeInstances {
   import FingerTree._
 
-  implicit def viewLFunctor[S[_]](implicit s: Functor[S]): Functor[({type λ[α]=ViewL[S, α]})#λ] = new Functor[({type λ[α]=ViewL[S, α]})#λ] {
+  implicit def viewLFunctor[S[_]](implicit s: Functor[S]): Functor[({type λ[α]=ViewL[S, α]})#λ] = new AbstractFunctor[({type λ[α]=ViewL[S, α]})#λ] {
     def map[A, B](t: ViewL[S, A])(f: A => B): ViewL[S, B] =
       t.fold(EmptyL[S, B], (x, xs) => OnL(f(x), s.map(xs)(f))) //TODO define syntax for &: and :&
   }
 
-  implicit def viewRFunctor[S[_]](implicit s: Functor[S]): Functor[({type λ[α]=ViewR[S, α]})#λ] = new Functor[({type λ[α]=ViewR[S, α]})#λ] {
+  implicit def viewRFunctor[S[_]](implicit s: Functor[S]): Functor[({type λ[α]=ViewR[S, α]})#λ] = new AbstractFunctor[({type λ[α]=ViewR[S, α]})#λ] {
     def map[A, B](t: ViewR[S, A])(f: A => B): ViewR[S, B] =
       t.fold(EmptyR[S, B], (xs, x) => OnR(s.map(xs)(f), f(x)))
   }
 
-  implicit def fingerFoldable[V] = new Foldable[({type l[a]=Finger[V, a]})#l] with Foldable.FromFoldMap[({type l[a]=Finger[V, a]})#l] {
+  implicit def fingerFoldable[V]: Foldable[({type l[a]=Finger[V, a]})#l] = new AbstractFoldable[({type l[a]=Finger[V, a]})#l] with Foldable.FromFoldMap[({type l[a]=Finger[V, a]})#l] {
     override def foldMap[A, M: Monoid](v: Finger[V, A])(f: A => M) = v.foldMap(f)
   }
 
@@ -838,13 +838,13 @@ sealed abstract class FingerTreeInstances {
     UnitReducer((a: FingerTree[V, A]) => a.fold(v => v, (v, x) => v, (v, x, y, z) => v))
   }
 
-  implicit def nodeFoldable[V] = new Foldable[({type l[a]=Node[V, a]})#l] {
+  implicit def nodeFoldable[V]: Foldable[({type l[a]=Node[V, a]})#l] = new AbstractFoldable[({type l[a]=Node[V, a]})#l] {
     def foldMap[A, M: Monoid](t: Node[V, A])(f: A => M): M = t foldMap f
     def foldRight[A, B](v: Node[V, A], z: => B)(f: (A, => B) => B): B =
        foldMap(v)((a: A) => (Endo.endo(f.curried(a)(_: B)))) apply z
   }
 
-  implicit def fingerTreeFoldable[V]: Foldable[({type l[a]=FingerTree[V, a]})#l] = new Foldable[({type l[a]=FingerTree[V, a]})#l] {
+  implicit def fingerTreeFoldable[V]: Foldable[({type l[a]=FingerTree[V, a]})#l] = new AbstractFoldable[({type l[a]=FingerTree[V, a]})#l] {
     override def foldLeft[A, B](t: FingerTree[V, A], b: B)(f: (B, A) => B) = t.foldLeft(b)(f)
 
     def foldMap[A, M: Monoid](t: FingerTree[V, A])(f: A => M): M = t foldMap(f)
@@ -852,7 +852,7 @@ sealed abstract class FingerTreeInstances {
     override def foldRight[A, B](t: FingerTree[V, A], z: => B)(f: (A, => B) => B) = t.foldRight(z)(f)
   }
 
-  implicit def fingerTreeMonoid[V, A](implicit m: Reducer[A, V]): Monoid[FingerTree[V, A]]= new Monoid[FingerTree[V, A]] {
+  implicit def fingerTreeMonoid[V, A](implicit m: Reducer[A, V]): Monoid[FingerTree[V, A]]= new AbstractMonoid[FingerTree[V, A]] {
     def append(f1: FingerTree[V, A], f2: => FingerTree[V, A]) = f1 <++> f2
     def zero = empty
   }
@@ -868,7 +868,7 @@ sealed abstract class FingerTreeInstances {
     )
   }
 
-  implicit def fingerTreeEqual[V, A : Equal]: Equal[FingerTree[V, A]] = new Equal[FingerTree[V, A]] {
+  implicit def fingerTreeEqual[V, A : Equal]: Equal[FingerTree[V, A]] = new AbstractEqual[FingerTree[V, A]] {
     import std.stream._
     def equal(x: FingerTree[V, A], y: FingerTree[V, A]) =
       Equal[Stream[A]].equal(x.toStream, y.toStream)

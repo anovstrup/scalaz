@@ -79,7 +79,7 @@ sealed abstract class Isomorphisms extends IsomorphismsLow0{
   type <~>[F[_], G[_]] = IsoFunctor[F, G]
 
   /**Convenience template trait to implement `<~>` */
-  trait IsoFunctorTemplate[F[_], G[_]] extends IsoFunctor[F, G] {
+  abstract class IsoFunctorTemplate[F[_], G[_]] extends IsoFunctor[F, G] {
     final val to: NaturalTransformation[F, G] = new (F ~> G) {
       def apply[A](fa: F[A]): G[A] = to[A](fa)
     }
@@ -95,7 +95,7 @@ sealed abstract class Isomorphisms extends IsomorphismsLow0{
   type <~~>[F[_, _], G[_, _]] = IsoBifunctor[F, G]
 
   /**Convenience template trait to implement `<~~>` */
-  trait IsoBifunctorTemplate[F[_, _], G[_, _]] extends IsoBifunctor[F, G] {
+  abstract class IsoBifunctorTemplate[F[_, _], G[_, _]] extends IsoBifunctor[F, G] {
     final val to: BiNaturalTransformation[F, G] = new (F ~~> G) {
       def apply[A, B](fab: F[A, B]): G[A, B] = to[A, B](fab)
     }

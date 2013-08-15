@@ -3,7 +3,7 @@ package std
 
 
 trait StreamInstances {
-  implicit val streamInstance: Traverse[Stream] with MonadPlus[Stream] with Each[Stream] with Index[Stream] with Length[Stream] with Zip[Stream] with Unzip[Stream] with IsEmpty[Stream] with Cobind[Stream] = new Traverse[Stream] with MonadPlus[Stream] with Each[Stream] with Index[Stream] with Length[Stream] with Zip[Stream] with Unzip[Stream] with IsEmpty[Stream] with Cobind[Stream] {
+  implicit val streamInstance: Traverse[Stream] with MonadPlus[Stream] with Each[Stream] with Index[Stream] with Length[Stream] with Zip[Stream] with Unzip[Stream] with IsEmpty[Stream] with Cobind[Stream] = new AbstractTraverse[Stream] with MonadPlus[Stream] with Each[Stream] with Index[Stream] with Length[Stream] with Zip[Stream] with Unzip[Stream] with IsEmpty[Stream] with Cobind[Stream] {
     override def cojoin[A](a: Stream[A]) = a.tails.toStream.init
     def cobind[A, B](fa: Stream[A])(f: Stream[A] => B): Stream[B] = map(cojoin(fa))(f)
     def traverseImpl[G[_], A, B](fa: Stream[A])(f: A => G[B])(implicit G: Applicative[G]): G[Stream[B]] = {
@@ -29,7 +29,7 @@ trait StreamInstances {
       k
     }
     // TODO remove after removal of Index
-    override def indexOr[A](fa: Stream[A], default: => A, i: Int) = super[Traverse].indexOr(fa, default, i)
+    override def indexOr[A](fa: Stream[A], default: => A, i: Int) = super[AbstractTraverse].indexOr(fa, default, i)
 
     override def foldLeft[A, B](fa: Stream[A], z: B)(f: (B, A) => B): B = fa.foldLeft(z)(f)
 
@@ -61,7 +61,7 @@ trait StreamInstances {
    * streamZipApplicative.apply2(Zip(Stream(1, 2)), Zip(Stream(3, 4)))(_ * _) // Stream(3, 8)
    * }}}
    */
-  implicit val streamZipApplicative: Applicative[({type λ[α]=Stream[α] @@ Zip})#λ] = new Applicative[({type λ[α]=Stream[α] @@ Zip})#λ] {
+  implicit val streamZipApplicative: Applicative[({type λ[α]=Stream[α] @@ Zip})#λ] = new AbstractApplicative[({type λ[α]=Stream[α] @@ Zip})#λ] {
     def point[A](a: => A) = Zip(Stream.continually(a))
     def ap[A, B](fa: => (Stream[A] @@ Zip))(f: => (Stream[A => B] @@ Zip)) = {
       Zip(if (f.isEmpty || fa.isEmpty) Stream.empty[B]
@@ -69,15 +69,15 @@ trait StreamInstances {
     }
   }
 
-  implicit def streamMonoid[A] = new Monoid[Stream[A]] {
+  implicit def streamMonoid[A]: Monoid[Stream[A]] = new AbstractMonoid[Stream[A]] {
     def append(f1: Stream[A], f2: => Stream[A]) = f1 #::: f2
     def zero: Stream[A] = scala.Stream.empty
   }
 
-  implicit def streamEqual[A](implicit A0: Equal[A]) = new Equal[Stream[A]] {
+  implicit def streamEqual[A](implicit A0: Equal[A]): Equal[Stream[A]] = new AbstractEqual[Stream[A]] {
     def equal(a1: Stream[A], a2: Stream[A]) = (a1 corresponds a2)(A0.equal)
   }
-  implicit def streamShow[A](implicit A0: Show[A]) = new Show[Stream[A]] {
+  implicit def streamShow[A](implicit A0: Show[A]): Show[Stream[A]] = new AbstractShow[Stream[A]] {
     override def show(as: Stream[A]) = "Stream(" +: stream.intersperse(as.map(A0.show), Cord(",")).foldLeft(Cord())(_ ++ _) :+ ")"
   }
 

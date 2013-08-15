@@ -33,6 +33,8 @@ trait Bind[F[_]] extends Apply[F] { self =>
   val bindSyntax = new scalaz.syntax.BindSyntax[F] { def F = Bind.this }
 }
 
+private abstract class AbstractBind[F[_]] extends Bind[F]
+
 object Bind {
   @inline def apply[F[_]](implicit F: Bind[F]): Bind[F] = F
 

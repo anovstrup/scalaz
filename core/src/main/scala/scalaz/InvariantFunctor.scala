@@ -46,21 +46,23 @@ trait InvariantFunctor[F[_]]  { self =>
   val invariantFunctorSyntax = new scalaz.syntax.InvariantFunctorSyntax[F] { def F = InvariantFunctor.this }
 }
 
+private abstract class AbstractInvariantFunctor[F[_]] extends InvariantFunctor[F]
+
 object InvariantFunctor {
   @inline def apply[F[_]](implicit F: InvariantFunctor[F]): InvariantFunctor[F] = F
 
   ////
 
   /** Semigroup is an invariant functor. */
-  implicit val semigroupInvariantFunctor: InvariantFunctor[Semigroup] = new InvariantFunctor[Semigroup] {
-    def xmap[A, B](ma: Semigroup[A], f: A => B, g: B => A): Semigroup[B] = new Semigroup[B] {
+  implicit val semigroupInvariantFunctor: InvariantFunctor[Semigroup] = new AbstractInvariantFunctor[Semigroup] {
+    def xmap[A, B](ma: Semigroup[A], f: A => B, g: B => A): Semigroup[B] = new AbstractSemigroup[B] {
       def append(x: B, y: => B): B = f(ma.append(g(x), g(y)))
     }
   }
 
   /** Monoid is an invariant functor. */
-  implicit val monoidInvariantFunctor: InvariantFunctor[Monoid] = new InvariantFunctor[Monoid] {
-    def xmap[A, B](ma: Monoid[A], f: A => B, g: B => A): Monoid[B] = new Monoid[B] {
+  implicit val monoidInvariantFunctor: InvariantFunctor[Monoid] = new AbstractInvariantFunctor[Monoid] {
+    def xmap[A, B](ma: Monoid[A], f: A => B, g: B => A): Monoid[B] = new AbstractMonoid[B] {
       def zero: B = f(ma.zero)
       def append(x: B, y: => B): B = f(ma.append(g(x), g(y)))
     }

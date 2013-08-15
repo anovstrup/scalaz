@@ -129,8 +129,8 @@ sealed abstract class NonEmptyListInstances0 {
 }
 
 sealed abstract class NonEmptyListInstances extends NonEmptyListInstances0 {
-  implicit val nonEmptyList =
-    new Traverse1[NonEmptyList] with Monad[NonEmptyList] with Plus[NonEmptyList] with Comonad[NonEmptyList] with Each[NonEmptyList] with Zip[NonEmptyList] with Unzip[NonEmptyList] with Length[NonEmptyList] {
+  implicit val nonEmptyList: Traverse1[NonEmptyList] with Monad[NonEmptyList] with Plus[NonEmptyList] with Comonad[NonEmptyList] with Each[NonEmptyList] with Zip[NonEmptyList] with Unzip[NonEmptyList] with Length[NonEmptyList] =
+    new AbstractTraverse1[NonEmptyList] with Monad[NonEmptyList] with Plus[NonEmptyList] with Comonad[NonEmptyList] with Each[NonEmptyList] with Zip[NonEmptyList] with Unzip[NonEmptyList] with Length[NonEmptyList] {
       def traverse1Impl[G[_] : Apply, A, B](fa: NonEmptyList[A])(f: A => G[B]): G[NonEmptyList[B]] =
         fa traverse1 f
 
@@ -173,7 +173,7 @@ sealed abstract class NonEmptyListInstances extends NonEmptyListInstances0 {
       override def length[A](a: NonEmptyList[A]): Int = a.size
     }
 
-  implicit def nonEmptyListSemigroup[A]: Semigroup[NonEmptyList[A]] = new Semigroup[NonEmptyList[A]] {
+  implicit def nonEmptyListSemigroup[A]: Semigroup[NonEmptyList[A]] = new AbstractSemigroup[NonEmptyList[A]] {
     def append(f1: NonEmptyList[A], f2: => NonEmptyList[A]) = f1 append f2
   }
 

@@ -42,7 +42,7 @@ trait MapInstances extends MapInstances0 {
   }
 
   /** Map union monoid, unifying values with `V`'s `append`. */
-  implicit def mapMonoid[K, V: Semigroup]: Monoid[Map[K, V]] = new Monoid[Map[K, V]] {
+  implicit def mapMonoid[K, V: Semigroup]: Monoid[Map[K, V]] = new AbstractMonoid[Map[K, V]] {
     def zero = Map[K, V]()
     def append(m1: Map[K, V], m2: => Map[K, V]) = {
       // Eagerly consume m2 as the value is used more than once.
@@ -65,7 +65,7 @@ trait MapInstances extends MapInstances0 {
                   case (k, v) => Cord(K show k, "->", V show v)
                 }: _*) :+ "]")
 
-  implicit def mapOrder[K: Order, V: Order]: Order[Map[K, V]] = new Order[Map[K, V]] with MapEqual[K, V] {
+  implicit def mapOrder[K: Order, V: Order]: Order[Map[K, V]] = new AbstractOrder[Map[K, V]] with MapEqual[K, V] {
     def OK = Order[K]
     def OV = Equal[V]
     def order(x: Map[K, V], y: Map[K, V]): Ordering = {

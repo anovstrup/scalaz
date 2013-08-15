@@ -185,7 +185,7 @@ object Trampoline extends TrampolineInstances {
 }
 
 sealed abstract class TrampolineInstances {
-  implicit val trampolineMonad: Monad[Trampoline] = new Monad[Trampoline] {
+  implicit val trampolineMonad: Monad[Trampoline] = new AbstractMonad[Trampoline] {
     override def point[A](a: => A) = return_[Function0, A](a)
     def bind[A, B](ta: Trampoline[A])(f: A => Trampoline[B]) = ta flatMap f
   }
@@ -195,7 +195,7 @@ object Sink extends SinkInstances
 
 sealed trait SinkInstances {
   implicit def sinkMonad[S]: Monad[({type f[x] = Sink[S, x]})#f] =
-    new Monad[({type f[x] = Sink[S, x]})#f] {
+    new AbstractMonad[({type f[x] = Sink[S, x]})#f] {
       def point[A](a: => A) =
         Suspend[({type f[x] = (=> S) => x})#f, A](s =>
          Return[({type f[x] = (=> S) => x})#f, A](a))
@@ -207,7 +207,7 @@ object Source extends SourceInstances
 
 sealed trait SourceInstances {
   implicit def sourceMonad[S]: Monad[({type f[x] = Source[S, x]})#f] =
-    new Monad[({type f[x] = Source[S, x]})#f] {
+    new AbstractMonad[({type f[x] = Source[S, x]})#f] {
       override def point[A](a: => A) = Return[({type f[x] = (S, x)})#f, A](a)
       def bind[A, B](s: Source[S, A])(f: A => Source[S, B]) = s flatMap f
     }
@@ -217,7 +217,7 @@ sealed trait SourceInstances {
 // to Free to be part of the implicit scope.
 sealed abstract class FreeInstances extends TrampolineInstances with SinkInstances with SourceInstances {
   implicit def freeMonad[S[_]:Functor]: Monad[({type f[x] = Free[S, x]})#f] =
-    new Monad[({type f[x] = Free[S, x]})#f] {
+    new AbstractMonad[({type f[x] = Free[S, x]})#f] {
       def point[A](a: => A) = Return(a)
       override def map[A, B](fa: Free[S, A])(f: A => B) = fa map f
       def bind[A, B](a: Free[S, A])(f: A => Free[S, B]) = a flatMap f

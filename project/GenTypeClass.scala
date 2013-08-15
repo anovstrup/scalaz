@@ -242,6 +242,8 @@ trait %s[%s] %s { self =>
   %s
 }
 
+private abstract class Abstract%s[%s] extends %s[%s]
+
 object %s {
   @inline def apply[%s](implicit F: %s[F]): %s[F] = F
 
@@ -250,6 +252,7 @@ object %s {
   ////
 }
 """.format(tc.packageString0, typeClassName, classifiedType, extendsLikeList, syntaxMember,
+      typeClassName, classifiedType, typeClassName, classifiedTypeIdent,
       typeClassName,
       classifiedTypeF, typeClassName, typeClassName, typeClassName, classifiedTypeIdent, classifiedTypeIdent
       )

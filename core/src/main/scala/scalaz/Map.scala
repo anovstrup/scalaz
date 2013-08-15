@@ -891,24 +891,24 @@ sealed abstract class MapInstances {
       Show[List[(A, B)]].show(as.toAscList)
   }
 
-  implicit def mapEqual[A: Equal, B: Equal]: Equal[A ==>> B] = new Equal[A ==>> B] {
+  implicit def mapEqual[A: Equal, B: Equal]: Equal[A ==>> B] = new AbstractEqual[A ==>> B] {
     def equal(a1: A ==>> B, a2: A ==>> B) =
       a1.size === a2.size && a1.toAscList === a2.toAscList
   }
 
-  implicit def mapOrder[A: Order, B: Order]: Order[A ==>> B] = new Order[A ==>> B] {
+  implicit def mapOrder[A: Order, B: Order]: Order[A ==>> B] = new AbstractOrder[A ==>> B] {
     def order(o1: A ==>> B, o2: A ==>> B) =
       Order[List[(A,B)]].order(o1.toAscList, o2.toAscList)
   }
 
   implicit def mapFunctor[S]: Functor[({type λ[α] = ==>>[S, α]})#λ] =
-    new Functor[({type λ[α] = ==>>[S, α]})#λ] {
+    new AbstractFunctor[({type λ[α] = ==>>[S, α]})#λ] {
       def map[A, B](fa: S ==>> A)(f: A => B) =
         fa map f
     }
 
   implicit def mapFoldable[S]: Foldable[({type λ[α] = ==>>[S, α]})#λ] =
-    new Foldable[({type λ[α] = ==>>[S, α]})#λ] {
+    new AbstractFoldable[({type λ[α] = ==>>[S, α]})#λ] {
       def foldMap[A, B](fa: S ==>> A)(f: A => B)(implicit F: Monoid[B]) =
         fa match {
           case Tip() =>
@@ -921,7 +921,7 @@ sealed abstract class MapInstances {
         fa.toAscList.foldRight(z)((tuple, a) => f(tuple._2, a))
     }
 
-  implicit def mapTraversable[S: Order] = new Traverse[({type λ[α] = ==>>[S, α]})#λ] {
+  implicit def mapTraversable[S: Order]: Traverse[({type λ[α] = ==>>[S, α]})#λ] = new AbstractTraverse[({type λ[α] = ==>>[S, α]})#λ] {
     def traverseImpl[F[_], A, B](fa: S ==>> A)(f: A => F[B])(implicit G: Applicative[F]): F[S ==>> B] =
       fa match {
         case Tip() =>

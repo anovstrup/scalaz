@@ -26,14 +26,14 @@ trait Bifunctor[F[_, _]]  { self =>
   }
 
   /** Extract the Functor on the first param. */
-  def leftFunctor[X]: Functor[({type λ[α] = F[α, X]})#λ] = new Functor[({type λ[α] = F[α, X]})#λ] {
+  def leftFunctor[X]: Functor[({type λ[α] = F[α, X]})#λ] = new AbstractFunctor[({type λ[α] = F[α, X]})#λ] {
     def map[A, C](fax: F[A, X])(f: A => C): F[C, X] = bimap(fax)(f, z => z)
   }
 
   def leftMap[A, B, C](fab: F[A, B])(f: A => C): F[C, B] = bimap(fab)(f, z => z)
 
   /** Extract the Functor on the second param. */
-  def rightFunctor[X]: Functor[({type λ[α] = F[X, α]})#λ] = new Functor[({type λ[α] = F[X, α]})#λ] {
+  def rightFunctor[X]: Functor[({type λ[α] = F[X, α]})#λ] = new AbstractFunctor[({type λ[α] = F[X, α]})#λ] {
     def map[B, D](fab: F[X, B])(g: B => D): F[X, D] = bimap(fab)(z => z, g)
   }
 
@@ -45,6 +45,8 @@ trait Bifunctor[F[_, _]]  { self =>
   ////
   val bifunctorSyntax = new scalaz.syntax.BifunctorSyntax[F] { def F = Bifunctor.this }
 }
+
+private abstract class AbstractBifunctor[F[_, _]] extends Bifunctor[F]
 
 object Bifunctor {
   @inline def apply[F[_, _]](implicit F: Bifunctor[F]): Bifunctor[F] = F

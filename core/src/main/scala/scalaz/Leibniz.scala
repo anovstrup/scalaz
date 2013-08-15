@@ -34,7 +34,7 @@ object Leibniz extends LeibnizInstances with LeibnizFunctions{
 sealed abstract class LeibnizInstances {
   import Leibniz._
 
-  implicit val leibniz: Category[===] = new Category[===] {
+  implicit val leibniz: Category[===] = new AbstractCategory[===] {
     def id[A]: (A === A) = refl[A]
 
     def compose[A, B, C](bc: B === C, ab: A === B) = bc compose ab

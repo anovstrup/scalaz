@@ -93,6 +93,8 @@ trait Foldable1[F[_]] extends Foldable[F] { self =>
   val foldable1Syntax = new scalaz.syntax.Foldable1Syntax[F] { def F = Foldable1.this }
 }
 
+private abstract class AbstractFoldable1[F[_]] extends Foldable1[F]
+
 object Foldable1 {
   @inline def apply[F[_]](implicit F: Foldable1[F]): Foldable1[F] = F
 

@@ -33,6 +33,8 @@ trait Cobind[F[_]] extends Functor[F] { self =>
   val cobindSyntax = new scalaz.syntax.CobindSyntax[F] { def F = Cobind.this }
 }
 
+private abstract class AbstractCobind[F[_]] extends Cobind[F]
+
 object Cobind {
   @inline def apply[F[_]](implicit F: Cobind[F]): Cobind[F] = F
 

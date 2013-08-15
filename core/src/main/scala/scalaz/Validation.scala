@@ -371,13 +371,13 @@ sealed abstract class ValidationInstances extends ValidationInstances0 {
 
 sealed abstract class ValidationInstances0 extends ValidationInstances1 {
 
-  implicit def ValidationOrder[E: Order, A: Order]: Order[Validation[E, A]] = new Order[Validation[E, A]] {
+  implicit def ValidationOrder[E: Order, A: Order]: Order[Validation[E, A]] = new AbstractOrder[Validation[E, A]] {
     def order(f1: Validation[E, A], f2: Validation[E, A]) =
       f1 compare f2
   }
 
   implicit def ValidationMonoid[E: Semigroup, A: Monoid]: Monoid[Validation[E, A]] =
-    new Monoid[Validation[E, A]] {
+    new AbstractMonoid[Validation[E, A]] {
       def append(a1: Validation[E, A], a2: => Validation[E, A]) =
         a1 +++ a2
       def zero =
@@ -387,7 +387,7 @@ sealed abstract class ValidationInstances0 extends ValidationInstances1 {
 
 sealed abstract class ValidationInstances1 extends ValidationInstances2 {
   implicit def ValidationEqual[E: Equal, A: Equal]: Equal[Validation[E, A]] =
-      new Equal[Validation[E, A]] {
+      new AbstractEqual[Validation[E, A]] {
         def equal(a1: Validation[E, A], a2: Validation[E, A]) =
           a1 === a2
       }
@@ -396,14 +396,14 @@ sealed abstract class ValidationInstances1 extends ValidationInstances2 {
     Show.show(_.show)
 
   implicit def ValidationSemigroup[E: Semigroup, A: Semigroup]: Semigroup[Validation[E, A]] =
-    new Semigroup[Validation[E, A]] {
+    new AbstractSemigroup[Validation[E, A]] {
       def append(a1: Validation[E, A], a2: => Validation[E, A]) =
         a1 +++ a2
     }
 }
 
 sealed abstract class ValidationInstances2 extends ValidationInstances3 {
-  implicit def ValidationInstances1[L]: Traverse[({type l[a] = Validation[L, a]})#l] with Cozip[({type l[a] = Validation[L, a]})#l] with Plus[({type l[a] = Validation[L, a]})#l] with Optional[({type l[a] = Validation[L, a]})#l] = new Traverse[({type l[a] = Validation[L, a]})#l] with Cozip[({type l[a] = Validation[L, a]})#l] with Plus[({type l[a] = Validation[L, a]})#l] with Optional[({type l[a] = Validation[L, a]})#l] {
+  implicit def ValidationInstances1[L]: Traverse[({type l[a] = Validation[L, a]})#l] with Cozip[({type l[a] = Validation[L, a]})#l] with Plus[({type l[a] = Validation[L, a]})#l] with Optional[({type l[a] = Validation[L, a]})#l] = new AbstractTraverse[({type l[a] = Validation[L, a]})#l] with Cozip[({type l[a] = Validation[L, a]})#l] with Plus[({type l[a] = Validation[L, a]})#l] with Optional[({type l[a] = Validation[L, a]})#l] {
 
     override def map[A, B](fa: Validation[L, A])(f: A => B) =
       fa map f
@@ -432,7 +432,7 @@ sealed abstract class ValidationInstances2 extends ValidationInstances3 {
 }
 
 sealed abstract class ValidationInstances3 {
-  implicit val ValidationInstances0 : Bitraverse[Validation] = new Bitraverse[Validation] {
+  implicit val ValidationInstances0 : Bitraverse[Validation] = new AbstractBitraverse[Validation] {
     override def bimap[A, B, C, D](fab: Validation[A, B])
                                   (f: A => C, g: B => D) = fab bimap (f, g)
 
@@ -441,7 +441,7 @@ sealed abstract class ValidationInstances3 {
       fab.bitraverse(f, g)
   }
 
-  implicit def ValidationApplicative[L: Semigroup]: Applicative[({type l[a] = Validation[L, a]})#l] = new Applicative[({type l[a] = Validation[L, a]})#l] {
+  implicit def ValidationApplicative[L: Semigroup]: Applicative[({type l[a] = Validation[L, a]})#l] = new AbstractApplicative[({type l[a] = Validation[L, a]})#l] {
     def point[A](a: => A) =
       Success(a)
 

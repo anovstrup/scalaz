@@ -28,7 +28,7 @@ trait Order[F] extends Equal[F] { self =>
 
   def min(x: F, y: F) = if (lessThan(x, y)) x else y
 
-  override def contramap[B](f: B => F): Order[B] = new Order[B] {
+  override def contramap[B](f: B => F): Order[B] = new AbstractOrder[B] {
     def order(b1: B, b2: B): Ordering = self.order(f(b1), f(b2))
     override def equal(b1: B, b2: B) = self.equal(f(b1), f(b2))
   }
@@ -39,7 +39,7 @@ trait Order[F] extends Equal[F] { self =>
     def compare(x: F, y: F) = self.order(x, y).toInt
   }
 
-  final def reverseOrder = new Order[F] {
+  final def reverseOrder: Order[F] = new AbstractOrder[F] {
     def order(x: F, y: F): Ordering = self.order(y, x)
     override def equal(x: F, y: F) = self.equal(x, y)
     override def equalIsNatural = self.equalIsNatural
@@ -65,16 +65,18 @@ trait Order[F] extends Equal[F] { self =>
   val orderSyntax = new scalaz.syntax.OrderSyntax[F] { def F = Order.this }
 }
 
+private abstract class AbstractOrder[F] extends Order[F]
+
 object Order {
   @inline def apply[F](implicit F: Order[F]): Order[F] = F
 
   ////
 
-  implicit val orderInstance: Contravariant[Order] = new Contravariant[Order] {
+  implicit val orderInstance: Contravariant[Order] = new AbstractContravariant[Order] {
     def contramap[A, B](r: Order[A])(f: B => A): Order[B] = r.contramap(f)
   }
 
-  implicit def fromScalaOrdering[A](implicit O: SOrdering[A]): Order[A] = new Order[A] {
+  implicit def fromScalaOrdering[A](implicit O: SOrdering[A]): Order[A] = new AbstractOrder[A] {
     def order(a1: A, a2: A) = std.anyVal.intInstance.order(O.compare(a1, a2), 0)
   }
 
@@ -82,15 +84,15 @@ object Order {
   def orderBy[A, B: Order](f: A => B): Order[A] = Order[B] contramap f
 
   /** Derive from an `order` function. */
-  def order[A](f: (A, A) => Ordering): Order[A] = new Order[A] {
+  def order[A](f: (A, A) => Ordering): Order[A] = new AbstractOrder[A] {
     def order(a1: A, a2: A) = f(a1, a2)
   }
 
-  implicit def orderMonoid[A] = new Monoid[Order[A]] {
-    def zero: Order[A] = new Order[A] {
+  implicit def orderMonoid[A]: Monoid[Order[A]] = new AbstractMonoid[Order[A]] {
+    def zero: Order[A] = new AbstractOrder[A] {
       def order(x: A, y: A): Ordering = Monoid[Ordering].zero
     }
-    def append(f1: Order[A], f2: => Order[A]): Order[A] = new Order[A] {
+    def append(f1: Order[A], f2: => Order[A]): Order[A] = new AbstractOrder[A] {
       def order(x: A, y: A): Ordering = Semigroup[Ordering].append(f1.order(x, y), f2.order(x, y))
     }
   }

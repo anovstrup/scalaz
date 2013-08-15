@@ -33,7 +33,7 @@ trait Contravariant[F[_]] extends InvariantFunctor[F] { self =>
     * covariant.
     */
   def compose[G[_]](implicit G0: Contravariant[G]): Functor[({type λ[α] = F[G[α]]})#λ] =
-    new Functor[({type λ[α] = F[G[α]]})#λ] {
+    new AbstractFunctor[({type λ[α] = F[G[α]]})#λ] {
       def map[A, B](fa: F[G[A]])(f: A => B) =
         self.contramap(fa)(gb => G0.contramap(gb)(f))
     }
@@ -42,7 +42,7 @@ trait Contravariant[F[_]] extends InvariantFunctor[F] { self =>
     * is contravariant.
     */
   def icompose[G[_]](implicit G0: Functor[G]): Contravariant[({type λ[α] = F[G[α]]})#λ] =
-    new Contravariant[({type λ[α] = F[G[α]]})#λ] {
+    new AbstractContravariant[({type λ[α] = F[G[α]]})#λ] {
       def contramap[A, B](fa: F[G[A]])(f: B => A) =
         self.contramap(fa)(gb => G0.map(gb)(f))
     }
@@ -51,7 +51,7 @@ trait Contravariant[F[_]] extends InvariantFunctor[F] { self =>
     * contravariant.
     */
   def product[G[_]](implicit G0: Contravariant[G]): Contravariant[({type λ[α] = (F[α], G[α])})#λ] =
-    new Contravariant[({type λ[α] = (F[α], G[α])})#λ] {
+    new AbstractContravariant[({type λ[α] = (F[α], G[α])})#λ] {
       def contramap[A, B](fa: (F[A], G[A]))(f: B => A) =
         (self.contramap(fa._1)(f), G0.contramap(fa._2)(f))
     }
@@ -71,6 +71,8 @@ trait Contravariant[F[_]] extends InvariantFunctor[F] { self =>
   ////
   val contravariantSyntax = new scalaz.syntax.ContravariantSyntax[F] { def F = Contravariant.this }
 }
+
+private abstract class AbstractContravariant[F[_]] extends Contravariant[F]
 
 object Contravariant {
   @inline def apply[F[_]](implicit F: Contravariant[F]): Contravariant[F] = F

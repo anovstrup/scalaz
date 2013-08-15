@@ -11,7 +11,7 @@ trait Equal[F]  { self =>
   ////
   def equal(a1: F, a2: F): Boolean
 
-  def contramap[G](f: G => F): Equal[G] = new Equal[G] {
+  def contramap[G](f: G => F): Equal[G] = new AbstractEqual[G] {
     def equal(a1: G, a2: G) = self.equal(f(a1), f(a2))
   }
 
@@ -36,28 +36,30 @@ trait Equal[F]  { self =>
   val equalSyntax = new scalaz.syntax.EqualSyntax[F] { def F = Equal.this }
 }
 
+private abstract class AbstractEqual[F] extends Equal[F]
+
 object Equal {
   @inline def apply[F](implicit F: Equal[F]): Equal[F] = F
 
   ////
   /** Creates an Equal instance based on universal equality, `a1 == a2` */
-  def equalA[A]: Equal[A] = new Equal[A] {
+  def equalA[A]: Equal[A] = new AbstractEqual[A] {
     def equal(a1: A, a2: A): Boolean = a1 == a2
     override def equalIsNatural: Boolean = true
   }
 
   /** Creates an Equal instance based on reference equality, `a1 eq a2` */
-  def equalRef[A <: AnyRef]: Equal[A] = new Equal[A] {
+  def equalRef[A <: AnyRef]: Equal[A] = new AbstractEqual[A] {
     def equal(a1: A, a2: A): Boolean = a1 eq a2
   }
 
   def equalBy[A, B: Equal](f: A => B): Equal[A] = Equal[B] contramap f
 
-  def equalContravariant: Contravariant[Equal] = new Contravariant[Equal] {
+  def equalContravariant: Contravariant[Equal] = new AbstractContravariant[Equal] {
     def contramap[A, B](r: Equal[A])(f: B => A) = r.contramap(f)
   }
 
-  def equal[A](f: (A, A) => Boolean): Equal[A] = new Equal[A] {
+  def equal[A](f: (A, A) => Boolean): Equal[A] = new AbstractEqual[A] {
     def equal(a1: A, a2: A) = f(a1, a2)
   }
 
