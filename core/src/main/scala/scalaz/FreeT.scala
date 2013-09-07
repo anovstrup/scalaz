@@ -65,15 +65,9 @@ object FreeT extends FreeTInstances {
 
   def fromFree[F[_], M[_], A](m: M[scalaz.Free[F, A]])(implicit F: Functor[F], M: Monad[M]): FreeT[F, M, A] = {
     def loop(f: scalaz.Free[F, A]): FreeF[F, A, FreeT[F, M, A]] = f.resume match{
-      case -\/(s: F[ScalazFree[F, A]]) =>
-        Free[F, FreeT[F, M, A]](
-          F.map(s){ x =>
-            loop(x) match{
-              case a @ Pure(_) => new FreeT(M point a)
-              case Free(a: F[FreeT[F, M, A]]) =>
-              ???
-            }
-          }
+      case -\/(s) =>
+        Free(
+          F.map(s)( x => new FreeT(M point loop(x)))
         )
       case \/-(r) => Pure(r)
     }
