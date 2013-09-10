@@ -1,6 +1,7 @@
 package scalaz
 
 import scalacheck.ScalazArbitrary._
+import scalacheck.ScalazProperties._
 import syntax.equal._
 import std.string._
 import std.anyVal._
@@ -9,7 +10,8 @@ import org.specs2.matcher.{Parameters, ExceptionMatchers, TraversableMatchers}
 
 class RopeTest extends Spec with ExceptionMatchers with TraversableMatchers {
 
-  import Rope._
+  checkAll(plus.laws[Rope])
+  checkAll(foldable.laws[Rope])
 
   //def beTheSameRopeSeq[A : ClassManifest] = containInOrder(_: Seq[A]) ^^ (wrapRope(_: Rope[A]))
   import scala.Predef.{implicitly => ?}

@@ -226,6 +226,22 @@ object Rope {
     def length[A](a: Rope[A]) = a.self.measure
   }
 
+  implicit def ropeInstance: Foldable[Rope] with Plus[Rope] = new Foldable[Rope] with Plus[Rope] {
+    override def foldLeft[A, B](fa: Rope[A], z: B)(f: (B, A) => B) =
+      fa.iterator.foldLeft(z)(f)
+    def foldMap[A, B](fa: Rope[A])(f: A => B)(implicit M: Monoid[B]) =
+      fa.iterator.foldLeft(M.zero)((b, a) => M.append(b, f(a)))
+    def foldRight[A, B](fa: Rope[A], z: => B)(f: (A, => B) => B) =
+      fa.reverseIterator.foldLeft(z)((b, a) => f(a, b))
+    def plus[A](a: Rope[A], b: => Rope[A]) =
+      a ++ b
+  }
+
+  implicit def ropeEqual[A: Equal]: Equal[Rope[A]] = {
+    import FingerTree._, ImmutableArray._, syntax.equal._
+    Equal.equal(_.self === _.self)
+  }
+
   val baseChunkLength = 16
 
   def apply[A : ClassManifest](v: FingerTreeIntPlus[ImmutableArray[A]]): Rope[A] = new Rope[A](v)
