@@ -25,7 +25,7 @@ sealed abstract class ImmutableArray[+A] {
   def copyToArray[B >: A](xs: Array[B], start: Int, len: Int)
   def slice(from: Int, until: Int): ImmutableArray[A]
 
-  def ++[B >: A](other: ImmutableArray[B]): ImmutableArray[A]
+  def ++[B >: A](other: ImmutableArray[B]): ImmutableArray[B]
 }
 
 
@@ -96,7 +96,30 @@ trait ImmutableArrayFunctions {
     }
 }
 
-object ImmutableArray extends ImmutableArrayFunctions {
+sealed abstract class ImmutableArrayInstances {
+
+  implicit def immutableArrayEqual[A](implicit A: Equal[A]): Equal[ImmutableArray[A]] =
+    Equal.equal{ (a, b) =>
+      (a.length == b.length) && (0 until a.length).forall(i => A.equal(a(i), b(i)))
+    }
+
+  implicit def immutableArrayShow[A](implicit A: Show[A]): Show[ImmutableArray[A]] =
+    Show.shows(_.iterator.map(A.shows).mkString("[", ", ", "]"))
+
+  implicit val immutableArrayInstance: Foldable[ImmutableArray] with Plus[ImmutableArray] with Zip[ImmutableArray] =
+    new Foldable[ImmutableArray] with Foldable.FromFoldr[ImmutableArray] with Plus[ImmutableArray] with Zip[ImmutableArray] {
+      override def foldLeft[A, B](fa: ImmutableArray[A], z: B)(f: (B, A) => B) =
+        fa.foldLeft(z)(f)
+      def foldRight[A, B](fa: ImmutableArray[A], z: => B)(f: (A, => B) => B): B =
+        fa.foldRight(z)((a, b) => f(a, b))
+      def plus[A](a: ImmutableArray[A], b: => ImmutableArray[A]): ImmutableArray[A] =
+        a ++ b
+      def zip[A, B](a: => ImmutableArray[A], b: => ImmutableArray[B]) =
+        ImmutableArray.fromArray((a.iterator zip b.iterator).toArray)
+    }
+}
+
+object ImmutableArray extends ImmutableArrayInstances with ImmutableArrayFunctions {
   sealed abstract class ImmutableArray1[+A](array: Array[A]) extends ImmutableArray[A] {
     private[this] val arr = array.clone
     // override def stringPrefix = "ImmutableArray"
