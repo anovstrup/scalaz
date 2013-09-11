@@ -8,6 +8,8 @@ package scalaz
 trait Enum[F] extends Order[F] { self =>
   ////
 
+  import annotation.tailrec
+
   def succ(a: F): F
   def pred(a: F): F
 
@@ -156,38 +158,32 @@ trait Enum[F] extends Order[F] { self =>
 
   /** equivalence to `fromToL(a, b).foldRight(z)(f)` but more efficient */
   def foldr[A](a: F, b: F, z: A)(f: (F, A) => A): A = {
-    def fold(start: F, end: F) = {
-      var i = end
-      var acc = z
-      while(lessThan(start, i)){
-        acc = f(i, acc)
-        i = pred(i)
-      }
-      f(i, acc)
-    }
+    @tailrec
+    def go(start: F, end: F, acc: A): A =
+      if(lessThan(start, end))
+        go(start, pred(end), f(end, acc))
+      else
+        f(end, acc)
 
     if(lessThan(a, b))
-      fold(a, b)
+      go(a, b, z)
     else
-      fold(b, a)
+      go(b, a, z)
   }
 
   /** equivalence to `fromToL(a, b).foldLeft(z)(f)` but more efficient */
   def foldl[A](a: F, b: F, z: A)(f: (A, F) => A): A = {
-    def fold(start: F, end: F) = {
-      var i = start
-      var acc = z
-      while(lessThan(i, end)){
-        acc = f(acc, i)
-        i = succ(i)
-      }
-      f(acc, i)
-    }
+    @tailrec
+    def go(start: F, end: F, acc: A): A =
+      if(lessThan(start, end))
+        go(succ(start), end, f(acc, start))
+      else
+        f(acc, start)
 
     if(lessThan(a, b))
-      fold(a, b)
+      go(a, b, z)
     else
-      fold(b, a)
+      go(b, a, z)
   }
 
   def fromStepTo(n: Int, a: F, z: F): EphemeralStream[F] = {
