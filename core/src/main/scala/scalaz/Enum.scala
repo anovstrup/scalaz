@@ -151,6 +151,45 @@ trait Enum[F] extends Order[F] { self =>
     fromToLT(a, z).run
   }
 
+  /** equivalence to `fromToL(a, z).size` but more efficient */
+  def distance(a: F, z: F): Int = foldl(a, z, 0)((sum, _) => sum + 1)
+
+  /** equivalence to `fromToL(a, b).foldRight(z)(f)` but more efficient */
+  def foldr[A](a: F, b: F, z: A)(f: (F, A) => A): A = {
+    def fold(start: F, end: F) = {
+      var i = end
+      var acc = z
+      while(lessThan(start, i)){
+        acc = f(i, acc)
+        i = pred(i)
+      }
+      f(i, acc)
+    }
+
+    if(lessThan(a, b))
+      fold(a, b)
+    else
+      fold(b, a)
+  }
+
+  /** equivalence to `fromToL(a, b).foldLeft(z)(f)` but more efficient */
+  def foldl[A](a: F, b: F, z: A)(f: (A, F) => A): A = {
+    def fold(start: F, end: F) = {
+      var i = start
+      var acc = z
+      while(lessThan(i, end)){
+        acc = f(acc, i)
+        i = succ(i)
+      }
+      f(acc, i)
+    }
+
+    if(lessThan(a, b))
+      fold(a, b)
+    else
+      fold(b, a)
+  }
+
   def fromStepTo(n: Int, a: F, z: F): EphemeralStream[F] = {
     lazy val cmp =
       if(n > 0)

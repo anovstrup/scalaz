@@ -8,6 +8,26 @@ import scala.util.Random
 class DievTest extends Spec {
   val random = new Random()
 
+  "toEStream" ! check {
+    list: List[Int] =>
+    val diev = Diev.fromValuesSeq(list)
+    diev.toEStream.toList must be_===(diev.toList)
+  }
+
+  "length" ! check {
+    set: Set[Int] =>
+    val list = set.toList.sorted
+    val diev = Diev.fromValuesSeq(list)
+    diev.length must be_===(list.length)
+  }
+
+  "foldRight" ! check {
+    set: Set[Int] =>
+    val list = set.toList.sorted
+    val diev = Diev.fromValuesSeq(list)
+    diev.foldRight(List[Int]())(_ :: _) must be_===(list.foldRight(List[Int]())(_ :: _))
+  }
+
   "insert order makes no difference" ! check {
     (list: List[Int]) => {
       val shuffledList = random.shuffle(list)
@@ -51,4 +71,11 @@ class DievTest extends Spec {
 
   checkAll(equal.laws[Diev[Int]])
   checkAll(monoid.laws[Diev[Int]])
+
+  {
+    import org.scalacheck._
+    val listArb = Arbitrary(Gen.listOf(Gen.choose(-1000, 1000)))
+    implicit val dievArb = dievArbitrary[Int](listArb, implicitly)
+    checkAll(foldable.laws[Diev])
+  }
 }

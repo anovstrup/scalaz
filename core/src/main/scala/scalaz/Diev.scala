@@ -37,9 +37,15 @@ sealed abstract class Diev[A] {
 
   def foldLeft[B](z: B)(f: (B, A) => B): B
 
+  def foldRight[B](z: B)(f: (A, B) => B): B
+
   def toSet(): Set[A]
 
   def toList(): List[A]
+
+  def toEStream: EphemeralStream[A]
+
+  def length: Int
 }
 
 object DievInterval {
@@ -195,9 +201,19 @@ trait DievImplementation {
       }
     }
 
+    def foldRight[B](z: B)(f: (A, B) => B): B =
+      intervals.foldRight(z){(interval, z1) =>
+        (interval._1 |-> interval._2).foldRight(z1)(f)
+      }
+
     def toSet(): Set[A] = foldLeft[Set[A]](Set[A]())(_ + _)
 
     def toList(): List[A] = foldLeft[ListBuffer[A]](new ListBuffer())(_ += _).toList
+
+    def toEStream: EphemeralStream[A] =
+      intervals.foldLeft(EphemeralStream[A]()){case (acc, (start, end)) => acc ++ (start |=> end)}
+
+    def length: Int = intervals.foldMap{case (a, b) => EA.distance(a, b)}
 
     override def toString(): String = intervals.foldLeft(new StringBuilder().append("("))(_.append(_)).append(")").toString
   }
@@ -222,6 +238,17 @@ sealed abstract class DievInstances extends DievImplementation {
     def each[A](fa: Diev[A])(f: A => Unit): Unit = fa foreach f
 
     def length[A](fa: Diev[A]): Int = fa.foldLeft(0)((x, _) => x + 1)
+  }
+
+  implicit val dievInstance0: Foldable[Diev] = new Foldable[Diev] {
+    override def foldLeft[A, B](fa: Diev[A], z: B)(f: (B, A) => B) =
+      fa.foldLeft(z)(f)
+    def foldRight[A, B](fa: Diev[A], z: => B)(f: (A, => B) => B) =
+      fa.foldRight(z)((a, b) => f(a, b))
+    def foldMap[A, B](fa: Diev[A])(f: A => B)(implicit M: Monoid[B]) =
+      fa.foldLeft(M.zero)((b, a) => M.append(b, f(a)))
+    override def length[A](fa: Diev[A]) =
+      fa.length
   }
 
   implicit def dievMonoid[A: Enum]: Monoid[Diev[A]] = new Monoid[Diev[A]] {
